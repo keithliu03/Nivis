@@ -7,10 +7,10 @@ public class Inventory : MonoBehaviour
 {
     List<GameObject> turrets;
     List<int> turretType, upgradeLvl, upgradePrimary, nodeKey;
-    GameObject actionUI, upgradeBtn, upgradeBtn1, upgradeBtn2, upgradeContainer, turretName, researchBtn;
+    GameObject actionUI, actionUIInner, upgradeBtn, upgradeBtn1, upgradeBtn2,
+        upgradeContainer, turretName, researchBtn, researchStation, researchStationInner;
     int towerSelected = -1;
-
-    int primaryBranch = -1;
+    static bool upgradeBtnScaled = false;
 
     void Start()
     {
@@ -20,12 +20,15 @@ public class Inventory : MonoBehaviour
         upgradePrimary = new List<int>();
         nodeKey = new List<int>();
         actionUI = GameObject.Find("Canvas/ActionUI");
+        actionUIInner = GameObject.Find("Canvas/ActionUI/InnerEl");
         upgradeBtn = GameObject.Find("Canvas/ActionUI/InnerEl/UpgradeBtn");
         upgradeBtn1 = GameObject.Find("Canvas/ActionUI/InnerEl/UpgradeContainer/Btn1");
         upgradeBtn2 = GameObject.Find("Canvas/ActionUI/InnerEl/UpgradeContainer/Btn2");
         upgradeContainer = GameObject.Find("Canvas/ActionUI/InnerEl/UpgradeContainer");
         turretName = GameObject.Find("Canvas/ActionUI/InnerEl/TurretName");
         researchBtn = GameObject.Find("Canvas/ResearchStation");
+        researchStation = GameObject.Find("Canvas/ResearchStation");
+        researchStationInner = GameObject.Find("Canvas/ResearchStation/InnerEl");
         upgradeBtn.SetActive(false);
     }
 
@@ -45,6 +48,13 @@ public class Inventory : MonoBehaviour
     public void SelectTower(int nodeKey)
     {
         int towerNo = -1;
+
+        if(nodeKey == -1)
+        {
+            actionUI.GetComponent<UIAnimator>().CloseUI();
+            researchStation.GetComponent<UIAnimator>().CloseUI();
+            return;
+        }
 
         for(int i = 0; i < turrets.Count; i++)
         {
@@ -74,24 +84,60 @@ public class Inventory : MonoBehaviour
                 break;
         }
 
+        UpdateUpgradeSystem();
         actionUI.GetComponent<UIAnimator>().RequestToggle();
     }
 
+    bool ResearchUnlocked(int branch, int towerLvl)
+    {
+        return ResearchStation.researched[turretType[towerSelected], branch, towerLvl];
+    }
+
     /// <summary>
-    /// Tower upgrade.
+    /// Tower upgrade when selecting branches.
     /// </summary>
     /// <param name="primaryBranch"></param>
     public void SelectBranch(bool primaryBranch)
     {
-        this.primaryBranch = ((primaryBranch) ? 0 : 1);
+        int branchNo = ((primaryBranch) ? 0 : 1);
+        if (ResearchUnlocked(branchNo, 0))
+        {
+            upgradePrimary[towerSelected] = branchNo;
+            upgradeLvl[towerSelected] = 1;
+            UpdateUpgradeSystem();
+        }
+    }
 
-        upgradeBtn1.SetActive(false);
-        upgradeBtn2.SetActive(false);
-        Destroy(upgradeBtn1);
-        Destroy(upgradeBtn2);
-        upgradeBtn.gameObject.transform.SetParent(upgradeContainer.gameObject.transform);
-        upgradeBtn.SetActive(true);
-        upgradeBtn.gameObject.transform.localScale = upgradeBtn.gameObject.transform.localScale -
-            new Vector3(0, 0.45f, 0);
+    public void Upgrade()
+    {
+        if (ResearchUnlocked(upgradePrimary[towerSelected], upgradeLvl[towerSelected]))
+        {
+            if (upgradeLvl[towerSelected] < 3)
+                upgradeLvl[towerSelected]++;
+        }
+    }
+
+    public void UpdateUpgradeSystem()
+    {
+        if(upgradePrimary[towerSelected] == -1)
+        {
+            upgradeBtn1.SetActive(true);
+            upgradeBtn2.SetActive(true);
+            upgradeBtn.SetActive(false);
+            upgradeBtn.gameObject.transform.SetParent(actionUIInner.gameObject.transform);
+        }
+        else
+        {
+            upgradeBtn1.SetActive(false);
+            upgradeBtn2.SetActive(false);
+            upgradeBtn.gameObject.transform.SetParent(upgradeContainer.gameObject.transform);
+            upgradeBtn.SetActive(true);
+            if (!upgradeBtnScaled)
+            {
+                upgradeBtn.gameObject.transform.localScale = upgradeBtn.gameObject.transform.localScale -
+                    new Vector3(0, 0.45f, 0);
+                upgradeBtnScaled = true;
+            }
+        }
     }
 }

@@ -78,6 +78,8 @@ public class UIAnimator : MonoBehaviour
         secondTransition = false;
         tRatio = 0;
         elapsedTime = 0;
+        if (firstToggle)
+            innerEl.SetActive(toggled);
         if (firstToggle && toggled)
             gameObject.transform.localScale = new Vector3(initScale.x,
                 initScale.y, initScale.z);
@@ -93,6 +95,12 @@ public class UIAnimator : MonoBehaviour
     public void RequestToggle()
     {
         if (!toggled)
+            Toggle();
+    }
+
+    public void CloseUI()
+    {
+        if (toggled)
             Toggle();
     }
 }

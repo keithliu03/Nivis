@@ -35,10 +35,10 @@ public class Node : MonoBehaviour
         //Debug.Log("Clicked on Node.");
         if (!buildManager.CanBuild)
         {
-            if(turret != null)
-            {
+            if (turret != null)
                 buildManager.inventory.SelectTower(key);
-            }
+            else
+                buildManager.inventory.SelectTower(-1);
             return;
         }
         if (turret != null)
