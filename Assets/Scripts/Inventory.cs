@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -90,7 +91,14 @@ public class Inventory : MonoBehaviour
 
     bool ResearchUnlocked(int branch, int towerLvl)
     {
-        return ResearchStation.researched[turretType[towerSelected], branch, towerLvl];
+        try
+        {
+            return ResearchStation.researched[turretType[towerSelected], branch, towerLvl];
+        } catch(NullReferenceException e)
+        {
+            Debug.Log("You must purchase the achievement to upgrade through the research station.");
+            return false;
+        }
     }
 
     /// <summary>
